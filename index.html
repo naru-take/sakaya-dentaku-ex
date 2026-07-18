@@ -2,28 +2,35 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+>
+
 <title>酒屋の電卓EX</title>
+
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+
 <meta name="theme-color" content="#111111">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="酒屋EX">
+
 <style>
 :root{
   --bg:#111;
   --header:#1c1c1c;
   --panel:#222;
-  --panel2:#2d2d2d;
   --key:#474747;
-  --key2:#707070;
+  --gray:#707070;
   --orange:#ff9500;
   --green:#00e8c6;
   --text:#fff;
   --sub:#aaa;
 }
+
 *{
   margin:0;
   padding:0;
@@ -32,6 +39,7 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
   -webkit-user-select:none;
   user-select:none;
 }
+
 html,
 body{
   width:100%;
@@ -40,6 +48,7 @@ body{
   color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
 }
+
 body{
   min-height:100dvh;
   padding:
@@ -48,6 +57,7 @@ body{
     calc(12px + env(safe-area-inset-bottom));
   overflow-x:hidden;
 }
+
 header{
   background:var(--header);
   margin:0 -12px 12px;
@@ -56,6 +66,7 @@ header{
   font-size:22px;
   font-weight:700;
 }
+
 .tabs{
   display:flex;
   background:var(--panel);
@@ -63,6 +74,7 @@ header{
   border-radius:12px;
   overflow:hidden;
 }
+
 .tab{
   flex:1;
   min-width:0;
@@ -72,18 +84,22 @@ header{
   color:var(--sub);
   font-size:13px;
 }
+
 .tab.active{
   color:#fff;
   background:#353535;
   border-bottom:4px solid var(--orange);
 }
+
 .page{
   display:none;
 }
+
 .page.active{
   display:block;
 }
-/* 数式表示 */
+
+/* 上段：入力中の式、または確定した計算式 */
 .expression-display{
   height:64px;
   padding:0 18px;
@@ -99,10 +115,12 @@ header{
   font-weight:300;
   scrollbar-width:none;
 }
+
 .expression-display::-webkit-scrollbar{
   display:none;
 }
-/* リアルタイム合計 */
+
+/* 下段：途中合計・確定結果 */
 .total-display{
   min-height:42px;
   padding:7px 18px;
@@ -118,12 +136,14 @@ header{
   overflow:hidden;
   white-space:nowrap;
 }
+
 .tax-container{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
   margin-bottom:12px;
 }
+
 .taxbox{
   min-width:0;
   background:var(--panel);
@@ -132,24 +152,29 @@ header{
   line-height:1.6;
   font-size:15px;
 }
+
 .taxbox b{
   font-size:19px;
 }
+
 .tax-line{
   display:flex;
   justify-content:space-between;
   gap:5px;
 }
+
 .tax-value{
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
 }
+
 .key{
   height:64px;
   border:0;
@@ -161,19 +186,24 @@ header{
   touch-action:manipulation;
   transition:transform .06s,filter .06s;
 }
+
 .key:active{
   transform:scale(.95);
   filter:brightness(1.18);
 }
+
 .key.gray{
-  background:var(--key2);
+  background:var(--gray);
 }
+
 .key.orange{
   background:var(--orange);
 }
+
 .key.zero{
   grid-column:span 2;
 }
+
 .placeholder{
   background:var(--panel);
   border-radius:16px;
@@ -181,286 +211,518 @@ header{
   text-align:center;
   color:var(--sub);
 }
+
 @media (max-height:720px){
   header{
     padding:12px;
     margin-bottom:8px;
   }
+
   .tabs{
     margin-bottom:8px;
   }
+
   .tab{
     padding:8px 1px;
   }
+
   .expression-display{
     height:54px;
   }
+
   .total-display{
     min-height:34px;
     margin-bottom:8px;
   }
+
   .tax-container{
     margin-bottom:8px;
   }
+
   .taxbox{
     padding:8px 10px;
     line-height:1.45;
   }
+
   .keys{
     gap:7px;
   }
+
   .key{
     height:54px;
   }
 }
 </style>
 </head>
+
 <body>
+
 <header>🧮 酒屋の電卓EX</header>
+
 <nav class="tabs">
-  <button class="tab active" data-page="0">税率</button>
-  <button class="tab" data-page="1">粗利</button>
-  <button class="tab" data-page="2">値引</button>
-  <button class="tab" data-page="3">ケース</button>
-  <button class="tab" data-page="4">利益率</button>
-  <button class="tab" data-page="5">度数</button>
+  <button class="tab active">税率</button>
+  <button class="tab">粗利</button>
+  <button class="tab">値引</button>
+  <button class="tab">ケース</button>
+  <button class="tab">利益率</button>
+  <button class="tab">度数</button>
 </nav>
+
 <main>
-  <section class="page active">
-    <div id="expressionDisplay" class="expression-display">0</div>
-    <div class="total-display">
-      合計：<span id="totalDisplay">0</span>円
-    </div>
-    <div class="tax-container">
-      <div class="taxbox">
-        <b>8%</b>
-        <div class="tax-line">
-          <span>税込:</span>
-          <span id="tax8in" class="tax-value">0円</span>
-        </div>
-        <div class="tax-line">
-          <span>税抜:</span>
-          <span id="tax8ex" class="tax-value">0円</span>
-        </div>
+
+<section class="page active">
+
+  <div id="expressionDisplay" class="expression-display">
+    0
+  </div>
+
+  <div class="total-display">
+    <span id="resultLabel">合計：</span>
+    <span id="totalDisplay">0</span>円
+  </div>
+
+  <div class="tax-container">
+
+    <div class="taxbox">
+      <b>8%</b>
+
+      <div class="tax-line">
+        <span>税込:</span>
+        <span id="tax8in" class="tax-value">0円</span>
       </div>
-      <div class="taxbox">
-        <b>10%</b>
-        <div class="tax-line">
-          <span>税込:</span>
-          <span id="tax10in" class="tax-value">0円</span>
-        </div>
-        <div class="tax-line">
-          <span>税抜:</span>
-          <span id="tax10ex" class="tax-value">0円</span>
-        </div>
+
+      <div class="tax-line">
+        <span>税抜:</span>
+        <span id="tax8ex" class="tax-value">0円</span>
       </div>
     </div>
-    <div class="keys">
-      <button class="key gray" data-key="clear">C</button>
-      <button class="key gray" data-value="/">÷</button>
-      <button class="key gray" data-value="*">×</button>
-      <button class="key orange" data-key="backspace">←</button>
-      <button class="key" data-value="7">7</button>
-      <button class="key" data-value="8">8</button>
-      <button class="key" data-value="9">9</button>
-      <button class="key orange" data-value="-">−</button>
-      <button class="key" data-value="4">4</button>
-      <button class="key" data-value="5">5</button>
-      <button class="key" data-value="6">6</button>
-      <button class="key orange" data-value="+">＋</button>
-      <button class="key" data-value="1">1</button>
-      <button class="key" data-value="2">2</button>
-      <button class="key" data-value="3">3</button>
-      <button class="key orange" data-key="equals">＝</button>
-      <button class="key zero" data-value="0">0</button>
-      <button class="key" data-value=".">.</button>
+
+    <div class="taxbox">
+      <b>10%</b>
+
+      <div class="tax-line">
+        <span>税込:</span>
+        <span id="tax10in" class="tax-value">0円</span>
+      </div>
+
+      <div class="tax-line">
+        <span>税抜:</span>
+        <span id="tax10ex" class="tax-value">0円</span>
+      </div>
     </div>
-  </section>
-  <section class="page">
-    <div class="placeholder">粗利計算は次に追加します</div>
-  </section>
-  <section class="page">
-    <div class="placeholder">値引計算は次に追加します</div>
-  </section>
-  <section class="page">
-    <div class="placeholder">ケース計算は次に追加します</div>
-  </section>
-  <section class="page">
-    <div class="placeholder">利益率計算は次に追加します</div>
-  </section>
-  <section class="page">
-    <div class="placeholder">度数計算は次に追加します</div>
-  </section>
+
+  </div>
+
+  <div class="keys">
+
+    <button class="key gray" data-key="clear">C</button>
+    <button class="key gray" data-value="/">÷</button>
+    <button class="key gray" data-value="*">×</button>
+    <button class="key orange" data-key="backspace">←</button>
+
+    <button class="key" data-value="7">7</button>
+    <button class="key" data-value="8">8</button>
+    <button class="key" data-value="9">9</button>
+    <button class="key orange" data-value="-">−</button>
+
+    <button class="key" data-value="4">4</button>
+    <button class="key" data-value="5">5</button>
+    <button class="key" data-value="6">6</button>
+    <button class="key orange" data-value="+">＋</button>
+
+    <button class="key" data-value="1">1</button>
+    <button class="key" data-value="2">2</button>
+    <button class="key" data-value="3">3</button>
+    <button class="key orange" data-key="equals">＝</button>
+
+    <button class="key zero" data-value="0">0</button>
+    <button class="key" data-value=".">.</button>
+
+  </div>
+
+</section>
+
+<section class="page">
+  <div class="placeholder">粗利計算は次に追加します</div>
+</section>
+
+<section class="page">
+  <div class="placeholder">値引計算は次に追加します</div>
+</section>
+
+<section class="page">
+  <div class="placeholder">ケース計算は次に追加します</div>
+</section>
+
+<section class="page">
+  <div class="placeholder">利益率計算は次に追加します</div>
+</section>
+
+<section class="page">
+  <div class="placeholder">度数計算は次に追加します</div>
+</section>
+
 </main>
+
 <script>
 "use strict";
+
 let expression = "0";
-const expressionDisplay = document.getElementById("expressionDisplay");
-const totalDisplay = document.getElementById("totalDisplay");
-const tax8in = document.getElementById("tax8in");
-const tax8ex = document.getElementById("tax8ex");
-const tax10in = document.getElementById("tax10in");
-const tax10ex = document.getElementById("tax10ex");
+
+/* ＝を押した後かどうか */
+let justCalculated = false;
+
+/* ＝を押す前の計算式 */
+let savedExpression = "";
+
+const expressionDisplay =
+  document.getElementById("expressionDisplay");
+
+const totalDisplay =
+  document.getElementById("totalDisplay");
+
+const resultLabel =
+  document.getElementById("resultLabel");
+
+const tax8in =
+  document.getElementById("tax8in");
+
+const tax8ex =
+  document.getElementById("tax8ex");
+
+const tax10in =
+  document.getElementById("tax10in");
+
+const tax10ex =
+  document.getElementById("tax10ex");
+
 const operators = ["+", "-", "*", "/"];
+
+/* 電卓ボタン */
 document.querySelectorAll(".key").forEach(button => {
+
   button.addEventListener("click", () => {
+
     const value = button.dataset.value;
     const key = button.dataset.key;
+
     if (value !== undefined) {
       addInput(value);
       return;
     }
+
     if (key === "clear") {
       clearAll();
       return;
     }
+
     if (key === "backspace") {
       backspace();
       return;
     }
+
     if (key === "equals") {
       calculateFinal();
     }
+
   });
+
 });
+
+/* タブ切替 */
 document.querySelectorAll(".tab").forEach((tab, index) => {
+
   tab.addEventListener("click", () => {
+
     document.querySelectorAll(".tab").forEach(item => {
       item.classList.remove("active");
     });
+
     document.querySelectorAll(".page").forEach(page => {
       page.classList.remove("active");
     });
+
     tab.classList.add("active");
-    document.querySelectorAll(".page")[index].classList.add("active");
+
+    document
+      .querySelectorAll(".page")[index]
+      .classList.add("active");
+
   });
+
 });
+
+/* 数字・記号入力 */
 function addInput(value) {
+
+  const isOperator = operators.includes(value);
+
+  /*
+   ＝の直後に数字を押した場合
+   新しい計算を開始
+  */
+  if (justCalculated && !isOperator) {
+    expression = value === "." ? "0." : value;
+    savedExpression = "";
+    justCalculated = false;
+    updateScreen();
+    return;
+  }
+
+  /*
+   ＝の直後に演算子を押した場合
+   前回の結果から続けて計算
+  */
+  if (justCalculated && isOperator) {
+    justCalculated = false;
+    savedExpression = "";
+  }
+
   const lastChar = expression.slice(-1);
-  if (operators.includes(value)) {
+
+  /* 演算子 */
+  if (isOperator) {
+
     if (expression === "0" && value !== "-") {
       return;
     }
+
     if (operators.includes(lastChar)) {
-      expression = expression.slice(0, -1) + value;
+      expression =
+        expression.slice(0, -1) + value;
     } else {
       expression += value;
     }
+
     updateScreen();
     return;
   }
+
+  /* 小数点 */
   if (value === ".") {
-    const currentNumber = expression.split(/[+\-*/]/).pop();
+
+    const currentNumber =
+      expression.split(/[+\-*/]/).pop();
+
     if (currentNumber.includes(".")) {
       return;
     }
-    if (
-      expression === "0" ||
-      operators.includes(lastChar)
-    ) {
-      expression += ".";
+
+    if (operators.includes(lastChar)) {
+      expression += "0.";
+    } else if (expression === "0") {
+      expression = "0.";
     } else {
       expression += ".";
     }
+
     updateScreen();
     return;
   }
+
+  /* 数字 */
   if (expression === "0") {
     expression = value;
   } else {
     expression += value;
   }
+
   updateScreen();
 }
+
+/* 全消去 */
 function clearAll() {
   expression = "0";
+  savedExpression = "";
+  justCalculated = false;
   updateScreen();
 }
+
+/* 1文字削除 */
 function backspace() {
+
+  /*
+   ＝を押した後に←を押した場合は
+   結果から編集を再開
+  */
+  if (justCalculated) {
+    justCalculated = false;
+    savedExpression = "";
+  }
+
   if (expression.length <= 1) {
     expression = "0";
   } else {
     expression = expression.slice(0, -1);
   }
+
   updateScreen();
 }
+
+/* ＝ */
 function calculateFinal() {
-  const result = calculateExpression(expression);
+
+  const result =
+    calculateExpression(expression);
+
   if (result === null) {
     return;
   }
+
+  /*
+   計算前の式を保存
+  */
+  savedExpression =
+    formatExpression(expression) + " ＝";
+
+  /*
+   計算結果を次の計算用に保存
+  */
   expression = normalizeResult(result);
+
+  justCalculated = true;
+
   updateScreen();
 }
+
+/* 数式の計算 */
 function calculateExpression(source) {
+
   let cleaned = source;
-  while (operators.includes(cleaned.slice(-1))) {
+
+  /*
+   末尾の演算子を取り除く
+  */
+  while (
+    cleaned.length > 0 &&
+    operators.includes(cleaned.slice(-1))
+  ) {
     cleaned = cleaned.slice(0, -1);
   }
+
   if (!cleaned) {
     return 0;
   }
+
+  /*
+   数字・小数点・演算子以外を拒否
+  */
   if (!/^[0-9+\-*/.]+$/.test(cleaned)) {
     return null;
   }
+
   try {
+
     const result = Function(
       '"use strict"; return (' + cleaned + ')'
     )();
+
     if (!Number.isFinite(result)) {
       return null;
     }
+
     return result;
+
   } catch {
     return null;
   }
 }
+
+/* 小数誤差を整える */
 function normalizeResult(number) {
+
   if (Number.isInteger(number)) {
     return String(number);
   }
+
   return String(
-    Math.round((number + Number.EPSILON) * 1000000) / 1000000
+    Math.round(
+      (number + Number.EPSILON) * 1000000
+    ) / 1000000
   );
 }
-function formatNumber(number, maximumFractionDigits = 6) {
+
+/* 数字をカンマ表示 */
+function formatNumber(
+  number,
+  maximumFractionDigits = 6
+) {
+
   if (!Number.isFinite(number)) {
     return "エラー";
   }
+
   const absolute = Math.abs(number);
+
+  /*
+   非常に大きい数字は指数表示
+  */
   if (absolute >= 1e15) {
     return number.toExponential(6);
   }
+
   return number.toLocaleString("ja-JP", {
     maximumFractionDigits
   });
 }
+
+/* 数式内の数字にカンマを付ける */
 function formatExpression(source) {
-  const parts = source.split(/([+\-*/])/);
+
+  const parts =
+    source.split(/([+\-*/])/);
+
   return parts.map(part => {
+
     if (part === "+") return " ＋ ";
     if (part === "-") return " − ";
     if (part === "*") return " × ";
     if (part === "/") return " ÷ ";
+
     if (part === "" || part === ".") {
       return part;
     }
+
     const numericValue = Number(part);
+
     if (!Number.isFinite(numericValue)) {
       return part;
     }
-    const decimalCount = part.includes(".")
-      ? part.split(".")[1].length
-      : 0;
-    return numericValue.toLocaleString("ja-JP", {
-      minimumFractionDigits:
-        part.endsWith(".") ? 0 : decimalCount,
-      maximumFractionDigits:decimalCount
-    }) + (part.endsWith(".") ? "." : "");
+
+    const hasDecimal =
+      part.includes(".");
+
+    const endsWithDot =
+      part.endsWith(".");
+
+    const decimalCount =
+      hasDecimal
+        ? part.split(".")[1].length
+        : 0;
+
+    let formatted =
+      numericValue.toLocaleString("ja-JP", {
+        minimumFractionDigits:
+          endsWithDot ? 0 : decimalCount,
+        maximumFractionDigits:
+          decimalCount
+      });
+
+    if (endsWithDot) {
+      formatted += ".";
+    }
+
+    return formatted;
+
   }).join("");
 }
+
+/* 計算式の長さに応じて縮小 */
 function resizeExpression() {
-  const length = expressionDisplay.textContent.length;
+
+  const length =
+    expressionDisplay.textContent.length;
+
   if (length <= 10) {
     expressionDisplay.style.fontSize = "38px";
   } else if (length <= 16) {
@@ -471,33 +733,91 @@ function resizeExpression() {
     expressionDisplay.style.fontSize = "20px";
   }
 }
+
+/* 画面更新 */
 function updateScreen() {
-  const result = calculateExpression(expression);
-  const total = result === null ? 0 : result;
-  expressionDisplay.textContent = formatExpression(expression);
-  totalDisplay.textContent = formatNumber(total);
+
+  const result =
+    calculateExpression(expression);
+
+  const total =
+    result === null ? 0 : result;
+
+  /*
+   ＝を押した後は計算式を上段に残す
+  */
+  if (justCalculated && savedExpression) {
+
+    expressionDisplay.textContent =
+      savedExpression;
+
+    resultLabel.textContent = "結果：";
+
+  } else {
+
+    expressionDisplay.textContent =
+      formatExpression(expression);
+
+    resultLabel.textContent = "合計：";
+
+  }
+
+  totalDisplay.textContent =
+    formatNumber(total);
+
   tax8in.textContent =
-    formatNumber(Math.round(total * 1.08), 0) + "円";
+    formatNumber(
+      Math.round(total * 1.08),
+      0
+    ) + "円";
+
   tax8ex.textContent =
-    formatNumber(Math.round(total / 1.08), 0) + "円";
+    formatNumber(
+      Math.round(total / 1.08),
+      0
+    ) + "円";
+
   tax10in.textContent =
-    formatNumber(Math.round(total * 1.10), 0) + "円";
+    formatNumber(
+      Math.round(total * 1.10),
+      0
+    ) + "円";
+
   tax10ex.textContent =
-    formatNumber(Math.round(total / 1.10), 0) + "円";
+    formatNumber(
+      Math.round(total / 1.10),
+      0
+    ) + "円";
+
   resizeExpression();
+
   requestAnimationFrame(() => {
-    expressionDisplay.scrollLeft = expressionDisplay.scrollWidth;
+    expressionDisplay.scrollLeft =
+      expressionDisplay.scrollWidth;
   });
 }
+
 updateScreen();
+
+/* PWA・オフライン対応 */
 if ("serviceWorker" in navigator) {
+
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
+
+    navigator
+      .serviceWorker
+      .register("./service-worker.js")
       .catch(error => {
-        console.log("Service Worker登録失敗:", error);
+        console.log(
+          "Service Worker登録失敗:",
+          error
+        );
       });
+
   });
+
 }
 </script>
+
 </body>
 </html>
