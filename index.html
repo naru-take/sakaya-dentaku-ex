@@ -22,13 +22,14 @@
 :root{
   --bg:#111;
   --header:#1c1c1c;
-  --panel:#222;
-  --key:#474747;
-  --gray:#707070;
+  --panel:#242424;
+  --key:#4a4a4a;
+  --gray:#808080;
   --orange:#ff9500;
   --green:#00e8c6;
   --text:#fff;
   --sub:#aaa;
+  --danger:#ff453a;
 }
 
 *{
@@ -54,8 +55,7 @@ body{
   padding:
     env(safe-area-inset-top)
     12px
-    calc(12px + env(safe-area-inset-bottom));
-  overflow-x:hidden;
+    calc(18px + env(safe-area-inset-bottom));
 }
 
 header{
@@ -87,7 +87,7 @@ header{
 
 .tab.active{
   color:#fff;
-  background:#353535;
+  background:#363636;
   border-bottom:4px solid var(--orange);
 }
 
@@ -99,19 +99,25 @@ header{
   display:block;
 }
 
-/* 上段：入力中の式、または確定した計算式 */
+.display-box{
+  background:#000;
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+/* 計算式 */
 .expression-display{
-  height:64px;
-  padding:0 18px;
+  min-height:68px;
+  padding:12px 18px 8px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  background:#000;
-  border-radius:16px 16px 0 0;
+  gap:3px;
   overflow-x:auto;
   overflow-y:hidden;
   white-space:nowrap;
-  font-size:38px;
+  font-size:35px;
   font-weight:300;
   scrollbar-width:none;
 }
@@ -120,21 +126,63 @@ header{
   display:none;
 }
 
-/* 下段：途中合計・確定結果 */
+/* タップできる数字 */
+.expression-token{
+  display:inline-block;
+  padding:3px 2px;
+  border-radius:7px;
+  transition:.12s;
+  cursor:pointer;
+}
+
+.expression-token.number:active{
+  background:#333;
+}
+
+/* 修正対象 */
+.expression-token.selected{
+  color:#111;
+  background:var(--green);
+  padding:3px 6px;
+}
+
+/* 演算子 */
+.expression-token.operator{
+  color:#ddd;
+  padding-left:5px;
+  padding-right:5px;
+}
+
+/* 計算結果 */
 .total-display{
-  min-height:42px;
-  padding:7px 18px;
+  min-height:64px;
+  padding:8px 18px 13px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
   background:#090909;
   color:var(--green);
-  border-radius:0 0 16px 16px;
-  margin-bottom:12px;
-  font-size:19px;
+  font-size:32px;
   font-weight:700;
   overflow:hidden;
   white-space:nowrap;
+}
+
+.total-currency{
+  margin-left:3px;
+  font-size:20px;
+}
+
+.edit-guide{
+  min-height:21px;
+  margin:-4px 3px 9px;
+  color:#888;
+  font-size:12px;
+  text-align:right;
+}
+
+.edit-guide.active{
+  color:var(--green);
 }
 
 .tax-container{
@@ -204,6 +252,93 @@ header{
   grid-column:span 2;
 }
 
+/* 履歴 */
+.history-area{
+  margin-top:18px;
+}
+
+.history-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+  padding:0 3px;
+}
+
+.history-title{
+  font-size:17px;
+  font-weight:700;
+}
+
+.clear-history{
+  border:0;
+  background:transparent;
+  color:#888;
+  font-size:13px;
+  padding:7px;
+}
+
+.history-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.history-empty{
+  padding:18px;
+  background:#1c1c1c;
+  border-radius:13px;
+  color:#777;
+  text-align:center;
+  font-size:14px;
+}
+
+.history-item{
+  position:relative;
+  background:#202020;
+  border-radius:13px;
+  padding:12px 48px 12px 14px;
+  cursor:pointer;
+}
+
+.history-item:active{
+  background:#2b2b2b;
+}
+
+.history-expression{
+  color:#bbb;
+  font-size:14px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.history-result{
+  margin-top:4px;
+  color:var(--green);
+  font-size:22px;
+  font-weight:700;
+}
+
+.history-delete{
+  position:absolute;
+  top:50%;
+  right:9px;
+  width:34px;
+  height:34px;
+  transform:translateY(-50%);
+  border:0;
+  border-radius:50%;
+  background:#333;
+  color:#aaa;
+  font-size:17px;
+}
+
+.history-delete:active{
+  color:#fff;
+  background:var(--danger);
+}
+
 .placeholder{
   background:var(--panel);
   border-radius:16px;
@@ -212,7 +347,7 @@ header{
   color:var(--sub);
 }
 
-@media (max-height:720px){
+@media (max-height:750px){
   header{
     padding:12px;
     margin-bottom:8px;
@@ -227,12 +362,13 @@ header{
   }
 
   .expression-display{
-    height:54px;
+    min-height:55px;
+    font-size:30px;
   }
 
   .total-display{
-    min-height:34px;
-    margin-bottom:8px;
+    min-height:48px;
+    font-size:27px;
   }
 
   .tax-container{
@@ -272,13 +408,22 @@ header{
 
 <section class="page active">
 
-  <div id="expressionDisplay" class="expression-display">
-    0
+  <div class="display-box">
+
+    <div
+      id="expressionDisplay"
+      class="expression-display"
+    ></div>
+
+    <div class="total-display">
+      <span id="totalDisplay">0</span>
+      <span class="total-currency">円</span>
+    </div>
+
   </div>
 
-  <div class="total-display">
-    <span id="resultLabel">合計：</span>
-    <span id="totalDisplay">0</span>円
+  <div id="editGuide" class="edit-guide">
+    計算式の数字をタップすると修正できます
   </div>
 
   <div class="tax-container">
@@ -340,6 +485,19 @@ header{
 
   </div>
 
+  <div class="history-area">
+
+    <div class="history-header">
+      <div class="history-title">計算履歴</div>
+      <button id="clearHistory" class="clear-history">
+        すべて消去
+      </button>
+    </div>
+
+    <div id="historyList" class="history-list"></div>
+
+  </div>
+
 </section>
 
 <section class="page">
@@ -367,13 +525,30 @@ header{
 <script>
 "use strict";
 
-let expression = "0";
+let tokens = ["0"];
 
-/* ＝を押した後かどうか */
+/*
+  数字をタップして選択したときの位置
+  nullなら通常入力
+*/
+let selectedTokenIndex = null;
+
+/*
+  選択後、最初の数字入力かどうか
+*/
+let replaceSelectedNumber = false;
+
+/*
+  ＝を押した直後かどうか
+*/
 let justCalculated = false;
 
-/* ＝を押す前の計算式 */
-let savedExpression = "";
+/*
+  計算履歴
+*/
+let history = loadHistory();
+
+const operators = ["+", "-", "*", "/"];
 
 const expressionDisplay =
   document.getElementById("expressionDisplay");
@@ -381,8 +556,8 @@ const expressionDisplay =
 const totalDisplay =
   document.getElementById("totalDisplay");
 
-const resultLabel =
-  document.getElementById("resultLabel");
+const editGuide =
+  document.getElementById("editGuide");
 
 const tax8in =
   document.getElementById("tax8in");
@@ -396,7 +571,11 @@ const tax10in =
 const tax10ex =
   document.getElementById("tax10ex");
 
-const operators = ["+", "-", "*", "/"];
+const historyList =
+  document.getElementById("historyList");
+
+const clearHistoryButton =
+  document.getElementById("clearHistory");
 
 /* 電卓ボタン */
 document.querySelectorAll(".key").forEach(button => {
@@ -407,7 +586,7 @@ document.querySelectorAll(".key").forEach(button => {
     const key = button.dataset.key;
 
     if (value !== undefined) {
-      addInput(value);
+      handleInput(value);
       return;
     }
 
@@ -452,89 +631,165 @@ document.querySelectorAll(".tab").forEach((tab, index) => {
 
 });
 
-/* 数字・記号入力 */
-function addInput(value) {
+/* 履歴全削除 */
+clearHistoryButton.addEventListener("click", () => {
 
-  const isOperator = operators.includes(value);
-
-  /*
-   ＝の直後に数字を押した場合
-   新しい計算を開始
-  */
-  if (justCalculated && !isOperator) {
-    expression = value === "." ? "0." : value;
-    savedExpression = "";
-    justCalculated = false;
-    updateScreen();
+  if (history.length === 0) {
     return;
   }
 
-  /*
-   ＝の直後に演算子を押した場合
-   前回の結果から続けて計算
-  */
-  if (justCalculated && isOperator) {
-    justCalculated = false;
-    savedExpression = "";
-  }
+  const ok = confirm("計算履歴をすべて消しますか？");
 
-  const lastChar = expression.slice(-1);
-
-  /* 演算子 */
-  if (isOperator) {
-
-    if (expression === "0" && value !== "-") {
-      return;
-    }
-
-    if (operators.includes(lastChar)) {
-      expression =
-        expression.slice(0, -1) + value;
-    } else {
-      expression += value;
-    }
-
-    updateScreen();
+  if (!ok) {
     return;
   }
 
-  /* 小数点 */
-  if (value === ".") {
+  history = [];
+  saveHistory();
+  renderHistory();
 
-    const currentNumber =
-      expression.split(/[+\-*/]/).pop();
+});
 
-    if (currentNumber.includes(".")) {
-      return;
-    }
+/* 入力振り分け */
+function handleInput(value) {
 
-    if (operators.includes(lastChar)) {
-      expression += "0.";
-    } else if (expression === "0") {
-      expression = "0.";
-    } else {
-      expression += ".";
-    }
-
-    updateScreen();
-    return;
-  }
-
-  /* 数字 */
-  if (expression === "0") {
-    expression = value;
+  if (operators.includes(value)) {
+    inputOperator(value);
   } else {
-    expression += value;
+    inputNumber(value);
   }
 
   updateScreen();
 }
 
+/* 数字または小数点 */
+function inputNumber(value) {
+
+  /*
+    計算式の数字を選択中
+  */
+  if (selectedTokenIndex !== null) {
+
+    let current = tokens[selectedTokenIndex];
+
+    if (replaceSelectedNumber) {
+
+      current = value === "." ? "0." : value;
+      replaceSelectedNumber = false;
+
+    } else {
+
+      if (value === "." && current.includes(".")) {
+        return;
+      }
+
+      current += value;
+    }
+
+    tokens[selectedTokenIndex] = current;
+
+    justCalculated = false;
+    return;
+  }
+
+  /*
+    ＝の直後に数字を押したら新規計算
+  */
+  if (justCalculated) {
+    tokens = [value === "." ? "0." : value];
+    justCalculated = false;
+    return;
+  }
+
+  const lastIndex = tokens.length - 1;
+  const lastToken = tokens[lastIndex];
+
+  /*
+    最後が演算子なら新しい数字を追加
+  */
+  if (operators.includes(lastToken)) {
+    tokens.push(value === "." ? "0." : value);
+    return;
+  }
+
+  /*
+    小数点の重複防止
+  */
+  if (value === "." && lastToken.includes(".")) {
+    return;
+  }
+
+  /*
+    最初の0を置き換える
+  */
+  if (tokens.length === 1 && lastToken === "0") {
+    tokens[0] = value === "." ? "0." : value;
+    return;
+  }
+
+  tokens[lastIndex] += value;
+}
+
+/* 演算子入力 */
+function inputOperator(value) {
+
+  /*
+    数字選択を終了
+  */
+  deselectToken();
+
+  /*
+    ＝の後なら結果から続ける
+  */
+  if (justCalculated) {
+    justCalculated = false;
+  }
+
+  const lastToken = tokens[tokens.length - 1];
+
+  /*
+    最後が演算子なら差し替え
+  */
+  if (operators.includes(lastToken)) {
+    tokens[tokens.length - 1] = value;
+    return;
+  }
+
+  tokens.push(value);
+}
+
+/* 数字をタップして編集対象にする */
+function selectNumber(index) {
+
+  if (
+    index < 0 ||
+    index >= tokens.length ||
+    operators.includes(tokens[index])
+  ) {
+    return;
+  }
+
+  selectedTokenIndex = index;
+  replaceSelectedNumber = true;
+
+  justCalculated = false;
+
+  updateScreen();
+}
+
+/* 選択解除 */
+function deselectToken() {
+  selectedTokenIndex = null;
+  replaceSelectedNumber = false;
+}
+
 /* 全消去 */
 function clearAll() {
-  expression = "0";
-  savedExpression = "";
+
+  tokens = ["0"];
   justCalculated = false;
+
+  deselectToken();
   updateScreen();
 }
 
@@ -542,18 +797,57 @@ function clearAll() {
 function backspace() {
 
   /*
-   ＝を押した後に←を押した場合は
-   結果から編集を再開
+    選択中の数字を削除
   */
-  if (justCalculated) {
+  if (selectedTokenIndex !== null) {
+
+    let current = tokens[selectedTokenIndex];
+
+    if (replaceSelectedNumber) {
+
+      tokens[selectedTokenIndex] = "0";
+      replaceSelectedNumber = false;
+
+    } else if (current.length <= 1) {
+
+      tokens[selectedTokenIndex] = "0";
+
+    } else {
+
+      tokens[selectedTokenIndex] =
+        current.slice(0, -1);
+    }
+
     justCalculated = false;
-    savedExpression = "";
+    updateScreen();
+    return;
   }
 
-  if (expression.length <= 1) {
-    expression = "0";
+  justCalculated = false;
+
+  const lastIndex = tokens.length - 1;
+  const lastToken = tokens[lastIndex];
+
+  if (operators.includes(lastToken)) {
+
+    tokens.pop();
+
+  } else if (lastToken.length > 1) {
+
+    tokens[lastIndex] =
+      lastToken.slice(0, -1);
+
+  } else if (tokens.length > 1) {
+
+    tokens.pop();
+
   } else {
-    expression = expression.slice(0, -1);
+
+    tokens = ["0"];
+  }
+
+  if (tokens.length === 0) {
+    tokens = ["0"];
   }
 
   updateScreen();
@@ -562,87 +856,79 @@ function backspace() {
 /* ＝ */
 function calculateFinal() {
 
-  const result =
-    calculateExpression(expression);
+  deselectToken();
+
+  const cleanedTokens = removeTrailingOperators(tokens);
+  const result = calculateTokens(cleanedTokens);
 
   if (result === null) {
     return;
   }
 
   /*
-   計算前の式を保存
+    履歴に保存
   */
-  savedExpression =
-    formatExpression(expression) + " ＝";
+  addHistory(cleanedTokens, result);
 
   /*
-   計算結果を次の計算用に保存
+    式はそのまま残す
   */
-  expression = normalizeResult(result);
-
+  tokens = cleanedTokens;
   justCalculated = true;
 
   updateScreen();
 }
 
-/* 数式の計算 */
-function calculateExpression(source) {
+/* 末尾の演算子を除去 */
+function removeTrailingOperators(sourceTokens) {
 
-  let cleaned = source;
+  const copied = [...sourceTokens];
 
-  /*
-   末尾の演算子を取り除く
-  */
   while (
-    cleaned.length > 0 &&
-    operators.includes(cleaned.slice(-1))
+    copied.length > 1 &&
+    operators.includes(copied[copied.length - 1])
   ) {
-    cleaned = cleaned.slice(0, -1);
+    copied.pop();
   }
 
-  if (!cleaned) {
-    return 0;
-  }
+  return copied;
+}
 
-  /*
-   数字・小数点・演算子以外を拒否
-  */
-  if (!/^[0-9+\-*/.]+$/.test(cleaned)) {
+/* 計算 */
+function calculateTokens(sourceTokens) {
+
+  const expression = sourceTokens.join("");
+
+  if (!/^[0-9+\-*/.]+$/.test(expression)) {
     return null;
   }
 
   try {
 
     const result = Function(
-      '"use strict"; return (' + cleaned + ')'
+      '"use strict"; return (' + expression + ')'
     )();
 
     if (!Number.isFinite(result)) {
       return null;
     }
 
-    return result;
+    return normalizeNumber(result);
 
   } catch {
     return null;
   }
 }
 
-/* 小数誤差を整える */
-function normalizeResult(number) {
+/* 小数誤差調整 */
+function normalizeNumber(number) {
 
-  if (Number.isInteger(number)) {
-    return String(number);
-  }
-
-  return String(
-    Math.round(
-      (number + Number.EPSILON) * 1000000
-    ) / 1000000
-  );
+  return Math.round(
+    (number + Number.EPSILON) * 1000000
+  ) / 1000000;
 }
 
-/* 数字をカンマ表示 */
+/* 数字を表示用に整形 */
 function formatNumber(
   number,
   maximumFractionDigits = 6
@@ -652,12 +938,7 @@ function formatNumber(
     return "エラー";
   }
 
-  const absolute = Math.abs(number);
-
-  /*
-   非常に大きい数字は指数表示
-  */
-  if (absolute >= 1e15) {
+  if (Math.abs(number) >= 1e15) {
     return number.toExponential(6);
   }
 
@@ -666,101 +947,125 @@ function formatNumber(
   });
 }
 
-/* 数式内の数字にカンマを付ける */
-function formatExpression(source) {
+/* 入力中の数字を整形 */
+function formatTokenNumber(value) {
 
-  const parts =
-    source.split(/([+\-*/])/);
+  if (value === "") {
+    return "";
+  }
 
-  return parts.map(part => {
+  if (value === ".") {
+    return "0.";
+  }
 
-    if (part === "+") return " ＋ ";
-    if (part === "-") return " − ";
-    if (part === "*") return " × ";
-    if (part === "/") return " ÷ ";
+  const endsWithDot = value.endsWith(".");
+  const number = Number(value);
 
-    if (part === "" || part === ".") {
-      return part;
-    }
+  if (!Number.isFinite(number)) {
+    return value;
+  }
 
-    const numericValue = Number(part);
+  const decimalPart =
+    value.includes(".")
+      ? value.split(".")[1]
+      : "";
 
-    if (!Number.isFinite(numericValue)) {
-      return part;
-    }
+  let formatted = number.toLocaleString("ja-JP", {
+    minimumFractionDigits:
+      endsWithDot ? 0 : decimalPart.length,
+    maximumFractionDigits:
+      decimalPart.length
+  });
 
-    const hasDecimal =
-      part.includes(".");
+  if (endsWithDot) {
+    formatted += ".";
+  }
 
-    const endsWithDot =
-      part.endsWith(".");
-
-    const decimalCount =
-      hasDecimal
-        ? part.split(".")[1].length
-        : 0;
-
-    let formatted =
-      numericValue.toLocaleString("ja-JP", {
-        minimumFractionDigits:
-          endsWithDot ? 0 : decimalCount,
-        maximumFractionDigits:
-          decimalCount
-      });
-
-    if (endsWithDot) {
-      formatted += ".";
-    }
-
-    return formatted;
-
-  }).join("");
+  return formatted;
 }
 
-/* 計算式の長さに応じて縮小 */
-function resizeExpression() {
+/* 演算子表示 */
+function operatorSymbol(operator) {
 
-  const length =
-    expressionDisplay.textContent.length;
+  if (operator === "+") return "＋";
+  if (operator === "-") return "−";
+  if (operator === "*") return "×";
+  if (operator === "/") return "÷";
 
-  if (length <= 10) {
-    expressionDisplay.style.fontSize = "38px";
-  } else if (length <= 16) {
-    expressionDisplay.style.fontSize = "31px";
-  } else if (length <= 24) {
-    expressionDisplay.style.fontSize = "25px";
-  } else {
-    expressionDisplay.style.fontSize = "20px";
+  return operator;
+}
+
+/* 計算式描画 */
+function renderExpression() {
+
+  expressionDisplay.innerHTML = "";
+
+  tokens.forEach((token, index) => {
+
+    const span =
+      document.createElement("span");
+
+    span.classList.add("expression-token");
+
+    if (operators.includes(token)) {
+
+      span.classList.add("operator");
+      span.textContent = operatorSymbol(token);
+
+    } else {
+
+      span.classList.add("number");
+      span.textContent = formatTokenNumber(token);
+
+      span.addEventListener("click", event => {
+        event.stopPropagation();
+        selectNumber(index);
+      });
+
+      if (selectedTokenIndex === index) {
+        span.classList.add("selected");
+      }
+    }
+
+    expressionDisplay.appendChild(span);
+
+  });
+
+  /*
+    ＝を押した後だけ末尾に＝を表示
+  */
+  if (justCalculated) {
+
+    const equals =
+      document.createElement("span");
+
+    equals.className =
+      "expression-token operator";
+
+    equals.textContent = "＝";
+
+    expressionDisplay.appendChild(equals);
   }
+
+  requestAnimationFrame(() => {
+    expressionDisplay.scrollLeft =
+      expressionDisplay.scrollWidth;
+  });
 }
 
 /* 画面更新 */
 function updateScreen() {
 
+  const cleanedTokens =
+    removeTrailingOperators(tokens);
+
   const result =
-    calculateExpression(expression);
+    calculateTokens(cleanedTokens);
 
   const total =
     result === null ? 0 : result;
 
-  /*
-   ＝を押した後は計算式を上段に残す
-  */
-  if (justCalculated && savedExpression) {
-
-    expressionDisplay.textContent =
-      savedExpression;
-
-    resultLabel.textContent = "結果：";
-
-  } else {
-
-    expressionDisplay.textContent =
-      formatExpression(expression);
-
-    resultLabel.textContent = "合計：";
-
-  }
+  renderExpression();
 
   totalDisplay.textContent =
     formatNumber(total);
@@ -789,23 +1094,216 @@ function updateScreen() {
       0
     ) + "円";
 
-  resizeExpression();
+  if (selectedTokenIndex !== null) {
 
-  requestAnimationFrame(() => {
-    expressionDisplay.scrollLeft =
-      expressionDisplay.scrollWidth;
+    editGuide.textContent =
+      "選んだ数字を入力し直してください";
+
+    editGuide.classList.add("active");
+
+  } else {
+
+    editGuide.textContent =
+      "計算式の数字をタップすると修正できます";
+
+    editGuide.classList.remove("active");
+  }
+}
+
+/* 履歴追加 */
+function addHistory(sourceTokens, result) {
+
+  const expression = sourceTokens.join("");
+
+  /*
+    同じ式と結果の連続登録を防ぐ
+  */
+  const latest = history[0];
+
+  if (
+    latest &&
+    latest.expression === expression &&
+    latest.result === result
+  ) {
+    return;
+  }
+
+  history.unshift({
+    expression,
+    result,
+    createdAt: Date.now()
+  });
+
+  /*
+    最大30件
+  */
+  history = history.slice(0, 30);
+
+  saveHistory();
+  renderHistory();
+}
+
+/* 履歴表示 */
+function renderHistory() {
+
+  historyList.innerHTML = "";
+
+  if (history.length === 0) {
+
+    const empty =
+      document.createElement("div");
+
+    empty.className = "history-empty";
+    empty.textContent = "まだ履歴はありません";
+
+    historyList.appendChild(empty);
+    return;
+  }
+
+  history.forEach((item, index) => {
+
+    const row =
+      document.createElement("div");
+
+    row.className = "history-item";
+
+    const expression =
+      document.createElement("div");
+
+    expression.className =
+      "history-expression";
+
+    expression.textContent =
+      formatHistoryExpression(item.expression) + " ＝";
+
+    const result =
+      document.createElement("div");
+
+    result.className =
+      "history-result";
+
+    result.textContent =
+      formatNumber(item.result) + "円";
+
+    const deleteButton =
+      document.createElement("button");
+
+    deleteButton.className =
+      "history-delete";
+
+    deleteButton.textContent = "×";
+
+    deleteButton.addEventListener(
+      "click",
+      event => {
+
+        event.stopPropagation();
+
+        history.splice(index, 1);
+        saveHistory();
+        renderHistory();
+      }
+    );
+
+    row.addEventListener("click", () => {
+
+      tokens =
+        tokenizeExpression(item.expression);
+
+      justCalculated = true;
+
+      deselectToken();
+      updateScreen();
+
+      window.scrollTo({
+        top:0,
+        behavior:"smooth"
+      });
+    });
+
+    row.appendChild(expression);
+    row.appendChild(result);
+    row.appendChild(deleteButton);
+
+    historyList.appendChild(row);
   });
 }
 
-updateScreen();
+/* 履歴用の式整形 */
+function formatHistoryExpression(expression) {
 
-/* PWA・オフライン対応 */
+  const expressionTokens =
+    tokenizeExpression(expression);
+
+  return expressionTokens.map(token => {
+
+    if (operators.includes(token)) {
+      return " " + operatorSymbol(token) + " ";
+    }
+
+    return formatTokenNumber(token);
+
+  }).join("");
+}
+
+/* 文字列をトークンに分解 */
+function tokenizeExpression(expression) {
+
+  const matches =
+    expression.match(/(\d+(?:\.\d+)?|[+\-*/])/g);
+
+  return matches && matches.length
+    ? matches
+    : ["0"];
+}
+
+/* 履歴保存 */
+function saveHistory() {
+
+  try {
+    localStorage.setItem(
+      "sakayaDentakuHistory",
+      JSON.stringify(history)
+    );
+  } catch (error) {
+    console.log("履歴保存失敗:", error);
+  }
+}
+
+/* 履歴読込 */
+function loadHistory() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        "sakayaDentakuHistory"
+      );
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+
+  } catch {
+    return [];
+  }
+}
+
+updateScreen();
+renderHistory();
+
+/* PWA */
 if ("serviceWorker" in navigator) {
 
   window.addEventListener("load", () => {
 
-    navigator
-      .serviceWorker
+    navigator.serviceWorker
       .register("./service-worker.js")
       .catch(error => {
         console.log(
