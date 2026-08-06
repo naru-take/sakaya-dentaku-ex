@@ -1,4 +1,4 @@
-const CACHE_NAME = "sakaya-denntaku-ex-v1";
+const CACHE_NAME = "sakaya-denntaku-ex-v2";
 
 const urlsToCache = [
   "./",
