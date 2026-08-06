@@ -399,6 +399,40 @@ overflow-y:auto;
     height:54px;
   }
 }
+/* 税率モード切替 */
+.tax-mode-switch{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  padding:5px;
+  margin-bottom:10px;
+  background:#1d1d1d;
+  border-radius:13px;
+}
+
+.tax-mode-button{
+  border:0;
+  border-radius:10px;
+  padding:10px 5px;
+  background:transparent;
+  color:#999;
+  font-size:14px;
+  font-weight:700;
+  touch-action:manipulation;
+}
+
+.tax-mode-button.active{
+  background:var(--orange);
+  color:#111;
+}
+
+.tax-mode-note{
+  margin:-3px 3px 9px;
+  color:#888;
+  font-size:12px;
+  text-align:right;
+}
+
 </style>
 </head>
 
