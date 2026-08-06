@@ -1186,17 +1186,20 @@ function updateScreen() {
   totalDisplay.textContent =
     formatNumber(total);
 
-  tax8in.textContent =
-    formatNumber(
-      Math.round(total * 1.08),
-      0
-    ) + "円";
+  const foodMultiplier =
+  1 + foodTaxRate / 100;
 
-  tax8ex.textContent =
-    formatNumber(
-      Math.round(total / 1.08),
-      0
-    ) + "円";
+foodTaxIn.textContent =
+  formatNumber(
+    Math.round(total * foodMultiplier),
+    0
+  ) + "円";
+
+foodTaxEx.textContent =
+  formatNumber(
+    Math.round(total / foodMultiplier),
+    0
+  ) + "円";
 
   tax10in.textContent =
     formatNumber(
