@@ -857,8 +857,28 @@ function inputOperator(value) {
   /*
     ＝の後なら結果から続ける
   */
+  
   if (justCalculated) {
-    justCalculated = false;
+  const completedTokens =
+    removeTrailingOperators(tokens);
+
+  const previousResult =
+    calculateTokens(completedTokens);
+
+  if (previousResult === null) {
+    return;
+  }
+
+  tokens = [
+    String(previousResult),
+    value
+  ];
+
+  justCalculated = false;
+  deselectToken();
+  return;
+}
+  
   }
 
   const lastToken = tokens[tokens.length - 1];
