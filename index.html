@@ -1414,7 +1414,15 @@ function loadHistory() {
   }
 }
 
-updateScreen();
+const savedFoodTaxRate =
+  Number(
+    localStorage.getItem("sakayaFoodTaxRate")
+  );
+
+setFoodTaxRate(
+  savedFoodTaxRate === 1 ? 1 : 8
+);
+
 renderHistory();
 
 /* PWA */
